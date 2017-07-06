@@ -123,13 +123,13 @@ sino()
 	MSG="$MSG [def=$DEF]"
   fi
 
-  while [ "$SINO" != "S" -a  "$SINO" != "N" ]; do
+  while [ "$SINO" != "Y" -a  "$SINO" != "N" ]; do
     echo -n "$MSG :"
     read SINO
     [ -z "$SINO" ] && SINO=$DEF
     SINO=`echo $SINO | tr [:lower:] [:upper:]`
-    if [ "$SINO" != "S" -a  "$SINO" != "N" ]; then
-	echo "Prego rispondere con S o N."
+    if [ "$SINO" != "Y" -a  "$SINO" != "N" ]; then
+	echo "Please answer with Y or N."
     fi
   done
 }
@@ -137,8 +137,8 @@ sino()
 proseguo()
 {
   RISP=""
-  while [ "$RISP" != "S" ]; do
-    echo -ne "\n Proseguo ('S' per Si, CTRL+C per interrompere) : "
+  while [ "$RISP" != "Y" ]; do
+    echo -ne "\n Continue ('Y' for Yes, CTRL+C to interrupt) : "
     read RISP
 #   RISP=`echo $RISP | tr [:lower:] [:upper:]`
   done
@@ -146,7 +146,7 @@ proseguo()
 
 pinvio()
 {
-  echo -ne "\n Premere [INVIO] per continuare. "
+  echo -ne "\n Press [ENTER] to continue. "
   read RISP
   echo " "
 }
@@ -175,9 +175,7 @@ function help()
  Uso $PRG : 
      $PRG <parametri>
           parametri:
-          -h | --help  =  Questo help
-          -q | --quiet = Non vengono inviati messaggi di stato in output,
-                         ma viene scritto solo il log in $LOGFILE
+          -h | --help  = This help screen
 !EOM
   at_exit $ret
 }
@@ -192,7 +190,6 @@ function logga()
 
 function valuta_parametri() {
 #!/bin/sh
-# scansione_1.sh
 
 # Si raccoglie la stringa generata da getopt.
 # STRINGA_ARGOMENTI=`getopt -o aB:c:: -l a-lunga,b-lunga:,c-lunga:: -- "$@"`
@@ -260,23 +257,12 @@ while true ; do
         esac
 done
 
-# echo "Argomenti rimanenti:" # debug
-
-# DEBUG
-#echo "Prima di ARG_RESTANTI"
 ARG_RESTANTI=()
 for i in `seq 1 $#`
 do
     eval a=\$$i
-#    echo "$i) $a"
     ARG_RESTANTI[$i]="$a"
 done
-
-#ARG_RESTANTI="$@"
-# for argomento in "$@"
-# do
-#     echo "$argomento"
-# done
 
 # [ "${#ARG_RESTANTI[*]}" -eq 0 ] && help "$PRG: ${COL_LTRED}ERRORE${COL_RESET}: pochi parametri!\n" 99
 
@@ -296,18 +282,13 @@ ac_signal=0
 
 
 #-- Valutazione dei parametri (argomenti - e --) e elborazione restanti - inizio
-# come da script "rsync_dedup_repo.sh"
 valuta_parametri "$@"
 newparams=""
 for i in `seq 1 ${#ARG_RESTANTI[*]}`
 do
  newparams="$newparams '${ARG_RESTANTI[$i]}'"
-# echo "Ciclo $i) ARG_RESTANTI[$i] = ${ARG_RESTANTI[$i]} "
 done
-#echo "\$newparams = $newparams"
 
-# set -- "${ARG_RESTANTI[*]}"
-# set -- "$(for i in `seq 1 ${#ARG_RESTANTI[*]}`;do echo "${ARG_RESTANTI[$i]}"; done)"
 eval "set -- $newparams"
 # Ora li valuto normalmente come $1, $2, ... $n
 
@@ -318,11 +299,11 @@ eval "set -- $newparams"
 #fi
 #-- Valutazione dei parametri (argomenti - e --) e elborazione restanti - fine
 MYID=`id -u`
-[ $MYID -ne 0 ] && help "Errore: $PRG : questo script dev'essere lanciato con i diritti di root." 97
+[ $MYID -ne 0 ] && help "Error: $PRG : this script needs 'root' privileges (or you should use 'sudo')." 97
 
 clear
-echo "Cerco di indovinare la disbribuzione e versione di Linux"
-echo -ne " Attendere prego ..."
+echo "Try to guess Linux Distribution and release."
+echo -ne " Please wait ..."
 # Vediamo se c'è intanto il pacchetto LSB ...
 DISTRO=
 DISTROTEXT=
@@ -333,7 +314,7 @@ REL=
 #  DEB - Debian/Ubuntu/Mint etc.
 #  SUS - SuSE Linux
 #  ARC - ArchLinux
-# ... per ora non alti
+# ... per ora non altri
 if [ -x /usr/bin/lsb_release ]; then
  lsbdescr=`lsb_release -a 2>/dev/null| grep ^Descr | cut -f2 -d: | sed "s/^\s*//" | sed "s/\s*$//"`
 
@@ -355,7 +336,7 @@ if [ -x /usr/bin/lsb_release ]; then
 		DISTROTEXT="SuSE Linux"
 		;;
 	*)
-		DISTROERR="LSB trovato ma versione non riconosciuta"
+		DISTROERR="LSB found, but unrecognized version."
 		DISTROTEXT="Not recognized"
 		;;
  esac
@@ -368,11 +349,11 @@ fi
 ## Fine indagine Linux
 echo -ne "\r                    \r"
 
-logga "Versione riconosciuta : $DISTROTEXT ($DISTRO)"
+logga "Recognized version/distribution : $DISTROTEXT ($DISTRO)"
 
 
-sino "Proseguo con l'elaborazione?" "N"
-if [ $SINO = "S" ]; then
+sino "Do I continue with process?" "N"
+if [ $SINO = "Y" ]; then
 :
 	# Cominciamo con gli ALIAS
 	ALIASNAME[0]='cd..'
@@ -425,7 +406,7 @@ if [ $SINO = "S" ]; then
 		;;
 	*)
 		# GABODebug
-		echo "Fixme: errore incongruente."
+		echo "Fixme: incongruence."
 		at_exit 11
 		;;
 	esac
@@ -443,17 +424,17 @@ if [ $SINO = "S" ]; then
 		res=$(alias $an 2>/dev/null)
 		ret=$?
 		if [ $ret -eq 0 ]; then
-			echo -e "ATTENZIONE: al momento, l'alias \"$an\" e' gia' assegnato cosi':"
+			echo -e "CAUTION: alias \"$an\" is currently assigned this way:"
 			echo -e "   $res "
-			echo -e "Proseguendo, verrebbe sostituito con questo:"
+			echo -e "Confirming, it should be replaced by this:"
 			echo -e "   alias ${an}='${av}'"
 			echo ""
-			sino "Si intende riassegnarlo?"
+			sino "Ok to replace it?"
 			[ "$SINO" = "N" ] && continue
 		fi
 
 		# Controllo di presenza alias in ALIASINITFILE
-		# --- DA IMPLEMENTARE
+		# --- DA IMPLEMENTARE (To implement yet)
 
 		echo "alias ${an}='${av}'" >> $ALIASINITFILE
 		((giro++))
@@ -489,11 +470,11 @@ if [ $SINO = "S" ]; then
 
 	echo "Scelta prompt: "
 	echo "+---+----------------------------------+----------------------------------+ "
-	echo "| N |  Utente non amministrativo       |  Utente ROOT                     | "
+	echo "| N |  Non-privileged user             |  ROOT user                       | "
 	echo "+---+----------------------------------+----------------------------------+ "
 	echo -e "  1    ${aps_disp[0]}     ${aps_disp[1]}   (Debian style) "
 	echo -e "  2    ${aps_disp[2]}   ${aps_disp[3]} (Redhat style) "
-	echo -e "  0                 ( Assegnazione di sistema - NO Colori ) "
+	echo -e "  0                 ( System default - No colours ) "
 
 
 	pschoose=""
@@ -503,7 +484,7 @@ if [ $SINO = "S" ]; then
 		# pschoose=$(echo $pschoose | sed "s/[\s\n\r]//g")
 		echo
 		if ! [[ "$pschoose" =~ ^(1|2|0)$ ]]; then
-			echo " ERR: Rispettare la scelta. Valori accettati 0, 1, 2 "
+			echo " ERR: Please verify your choice. Accepted values: 0, 1, 2 "
 		fi
 	done
 
@@ -536,13 +517,13 @@ if [ $SINO = "S" ]; then
 
 
 	# 
-	# ORA FACCIO LE INSTALLAZIONI PREVISTE PER TIPO DI DISTRIUZIONE
+	# ORA FACCIO LE INSTALLAZIONI PREVISTE PER TIPO DI DISTRIBUZIONE
 	case $DISTRO in
 	DEB)
 		apt-get update && apt-get upgrade \
 			&& apt install aptitude apt-file htop mc mlocate vim openssh-server lsb-release\
 					build-essential linux-headers-$(uname -r) module-assistant dkms
-		sino "Installo il necessario per un sistema LAMP?" "N"
+		sino "Have I to install needed packages for a LAMP system?" "N"
 		if [ $SINO = "S" ]; then
 			cat /etc/issue | grep -iq "Debian.* 9"
 			[ $? -eq 0 ] && MYSQL_PKGS="mariadb-client mariadb-server" \
@@ -550,7 +531,7 @@ if [ $SINO = "S" ]; then
 			
 			apt-get install apache2 php $MYSQL_PKGS phpmyadmin
 		fi
-		sino "Installo deb-multimedia" "N"
+		sino "Do I install deb-multimedia" "N"
 		if [ $SINO = "S" ]; then
 			wget http://www.deb-multimedia.org/pool/main/d/deb-multimedia-keyring/deb-multimedia-keyring_2016.8.1_all.deb \
 					-O /tmp/deb-multimedia-keyring_2016.8.1_all.deb
