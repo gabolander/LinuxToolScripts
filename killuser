@@ -1,0 +1,206 @@
+#!/bin/bash
+LANG="it_IT.UTF-8"
+export LANG
+
+PRG=`basename $0`
+PRGBASE=`basename $0 .sh`
+PRGDIR=`dirname $0`
+VERSION="0.99.2"
+LAST_UPD="25-03-2013"
+
+
+####
+#  Funzioni
+#
+function at_exit()
+{
+  if [ "$1" -gt 0 -a "$1" -lt 32 ]; then
+	echo -n "Bad exit for : "
+	case "$1" in
+	     1)
+	      echo "SIGHUP    /* Hangup (POSIX).  */"
+	      ;;
+	     2) echo "SIGINT    /* Interrupt (ANSI).  */"
+	      ;;
+	     3) echo "SIGQUIT   /* Quit (POSIX).  */"
+	      ;;
+	     9) echo "SIGKILL   /* Kill, unblockable (POSIX).  */"
+	      ;;
+	     12) echo "SIGUSR2     /* User-defined signal 2 (POSIX).  */"
+	      ;;
+	     13) echo "SIGPIPE     /* Broken pipe (POSIX).  */"
+	      ;;
+	     15) echo "SIGTERM     /* Termination (ANSI).  */"
+	      ;;
+	esac
+  fi
+
+  exit $1
+}
+
+function help()
+{
+  cat<<!EOM
+ Uso $PRG : 
+     $PRG <parametri>
+          parametri:
+          -h | --help  = This help screen
+          -q | --quiet = Silent. No output messages nor errors.
+			 NOTE: It is used only with --yes flag.
+          -y | --yes   = Anwer yes to all questions. Does not ask confirmation
+                         for killing processes.
+	  -s SIGNAL | --signal=SIGNAL = Uses signal <SIGNAL> to send to process(es).
+                                        (Default=-9 [Sigkill])
+!EOM
+  at_exit 0
+}
+
+function yesno()
+{
+  SINO=""
+  DEF=""
+  TMP=""
+  MSG=`echo "$1" | cut -c1`
+  if [ "$MSG" = "-" ]; then
+    MSG=""
+  else
+    MSG="$1"
+  fi
+
+  if [ -z "$2" ]; then
+    TMP="$1"
+  else
+    TMP="$2"
+  fi
+  TMP=`echo $TMP | tr [:lower:] [:upper:]`
+  DEF=`echo $TMP | cut -c1`
+  if [ -n "$MSG" -a -n "$DEF" ]; then
+  MSG="$MSG [def=$DEF]"
+  fi
+
+  while [ "$SINO" != "S" -a "$SINO" != "Y" -a  "$SINO" != "N" ]; do
+    echo -n "$MSG :"
+    read SINO
+    [ -z "$SINO" ] && SINO=$DEF
+    SINO=`echo $SINO | tr [:lower:] [:upper:]`
+    if [ "$SINO" != "Y" -a  "$SINO" != "S" -a  "$SINO" != "N" ]; then
+	  echo "Please answer Y (or S) o N."
+    fi
+  done
+}
+
+
+
+function valuta_parametri() {
+STRINGA_ARGOMENTI=`getopt -o hs:qy -l help,signal:,quiet,yes -- "$@"`
+# Init default parameters
+REPOBASE_DIR=""
+SIGNAL="-9"
+USE_FDUPES=""
+ANS_YES=""
+QUIET=""
+
+# Si trasferisce nei parametri $1, $2,...
+eval set -- "$STRINGA_ARGOMENTI"
+
+while true ; do
+	case "$1" in
+	-h|--help)
+	     shift
+	     help
+	     ;;
+	-y|--yes)
+	     shift
+	     ANS_YES="yes"
+	     ;;
+	-s|--signal*)
+	    [ -z "$2" ] && at_exit 99
+	    SIGNAL="$2"
+	    shift 2
+	    ;;
+	-q|--quiet)
+	    QUIET="S"
+	    shift
+	    ;;
+	--) shift
+	    break
+	    ;;
+	*)  echo "Errore imprevisto!"
+	    exit 1
+	    ;;
+	esac
+done
+
+ARG_RESTANTI=()
+for i in `seq 1 $#`
+do
+    eval a=\$$i
+    ARG_RESTANTI[$i]="$a"
+done
+
+[ "${#ARG_RESTANTI[*]}" -eq 0 ] && help "$PRG: ERRORE: pochi parametri!\n" 99
+
+}
+
+
+
+#############################################################
+# INIZIO SCRIPT                                             #
+#############################################################
+
+# Signals trapping
+for ac_signal in 1 2 13 15; do
+  trap 'ac_signal='$ac_signal'; at_exit $ac_signal;' $ac_signal
+done
+ac_signal=0
+
+# Arguments management - start
+valuta_parametri "$@"
+newparams=""
+for i in `seq 1 ${#ARG_RESTANTI[*]}`
+do
+ newparams="$newparams '${ARG_RESTANTI[$i]}'"
+done
+eval "set -- $newparams"
+# Arguments management - end
+
+[ "$ANS_YES" = "yes" ] || QUIET=""
+username="$1"
+
+if [ `id -u` -ne 0 ]; then
+	echo "$PRGBASE : error: Only root user can run this command."
+	at_exit 99
+fi
+
+if [ -z "$username" ]; then
+	[ "$QUIET" = "S" ] || echo "$PRGBASE : error: Username must be specified."
+	at_exit 99
+fi
+
+id $username > /dev/null 2>&1
+ret=$?
+if [ $ret -ne 0 ]; then
+	[ "$QUIET" = "S" ] || echo -e "$PRGBASE : error: No such user \"$username\". "
+	at_exit 99
+fi
+
+nup=`ps -u $username -o pid= | wc -l`
+if [ $nup -eq 0 ]; then
+	[ "$QUIET" = "S" ] || echo -e "$PRGBASE : No processes for user \"$username\". "
+	at_exit -1
+fi
+
+if [ "$ANS_YES" != "yes" ]; then
+	yesno "There are $nup processes for user $username. Proceed? " "Y"
+	if [ "$SINO" = "N" ]; then
+		echo "Aborted."
+		at_exit -1
+	fi
+fi
+
+# Final command.
+# echo "kill $SIGNAL `ps -u $username -o pid=`" # debug
+kill $SIGNAL `ps -u $username -o pid=` 2>/dev/null
+[ "$QUIET" = "S" ] || echo -e "killed $nup of user $username.\n"
+
+at_exit 0
