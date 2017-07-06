@@ -42,9 +42,9 @@ LOGFILE="${LOGDIR}/${PRGBASE}.log"
 LOGFILEXT="${LOGDIR}/${PRGBASE}-ext-${OGGI}.log"
 
 
-# declare -a sms_errors=('child procs already',"lerrore di stocazzo")  #Per ora solo uno
-Recipients="<gabriele.zappi@acantho.net>,<gabriele.zappi@comune.rimini.it>"
-declare -a mat_escluse=("M01234" "M19099")  # array di matricole escluse
+# declare -a sms_errors=('child procs already',"lerrore di stacippa")  #Per ora solo uno
+# Recipients="<gabriele.zappi@somedomain.net>,<gabo@mailme.com>"
+# declare -a codici_esclusi=("M01234" "M19099")  # array 
 
 
 ### Comandi
@@ -72,7 +72,7 @@ fi
 function at_exit()
 {
   if [ "$1" -gt 0 -a "$1" -lt 32 ]; then
-    echo -n "Uscita irregolare per : "
+    echo -n "Bad exit for : "
   else
 #     echo "Uscita regolare." # debug
       echo
@@ -251,7 +251,7 @@ while true ; do
         --) shift
             break
             ;;
-        *)  echo "Errore imprevisto!"
+        *)  echo "Unpredictable error!"
             exit 1
             ;;
         esac
