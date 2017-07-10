@@ -5,8 +5,9 @@ export LANG
 PRG=`basename $0`
 PRGBASE=`basename $0 .sh`
 PRGDIR=`dirname $0`
-VERSION="0.99.2"
-LAST_UPD="25-03-2012"
+VERSION="1.01.2"
+WRITTEN_STARTED="25-03-2012"
+LAST_UPD="10-07-2017"
 
 COL_YELLOW="\033[1;33m";    COLESC_YELLOW=`echo -en "$COL_YELLOW"`
 COL_BROWN="\033[0;33m";     COLESC_BROWN=`echo -en  "$COL_BROWN"`
@@ -133,6 +134,20 @@ sino()
     fi
   done
 }
+
+function trim()
+{
+    trimmed=$(echo -e "$1" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+    echo "$trimmed"
+}
+
+function escapedot() 
+{ 
+	in=$1
+	out=$(echo "$in" | sed "s/\./\\\./g")
+	echo "$out"
+}
+
 
 proseguo()
 {
@@ -375,7 +390,7 @@ if [ $SINO = "Y" ]; then
 	ALIASVALUE[3]='ls --color=auto'
 	ALIASVALUE[4]='ls -alF'
 	ALIASVALUE[5]='ls -lA'
-	ALIASVALUE[6]='ls -CF'
+	ALIASVALUE[6]='ls -CFA'
 	ALIASVALUE[7]='ls -lAF --group-directories-first'
 	ALIASVALUE[8]='ls -alF'
 	ALIASVALUE[9]="ip -o addr show | grep inet\  | grep 'eth\|enp' | cut -d\  -f 7"
@@ -411,34 +426,68 @@ if [ $SINO = "Y" ]; then
 		;;
 	esac
 
+###### CAN'T WORK in a bash script this one.. I've to grep $ALIASINITFILE or $SKELFILE
+### 	# First, I load ALIASINITFILE in source, so to have alias in environment ...
+### 	source $ALIASINITFILE
+### 	giro=0
+### 	TOT=0
+### 	while [ -n "${ALIASNAME[$giro]}" ]
+### 	do
+### 		an=${ALIASNAME[$giro]}
+### 		av=${ALIASVALUE[$giro]}
+### 
+### 		# Controllo di presenza alias in memoria nella SHELL corrente
+### 		# (settato da qualcosa o qualcuno)
+### 		res=$(alias $an 2>/dev/null)
+### 		ret=$?
+### 		if [ $ret -eq 0 ]; then
+### 			echo -e "CAUTION: alias \"$an\" is currently assigned this way:"
+### 			echo -e "   $res "
+### 			echo -e "Confirming, it should be replaced by this:"
+### 			echo -e "   alias ${an}='${av}'"
+### 			echo ""
+### 			sino "Ok to replace it?"
+### 			[ "$SINO" = "N" ] && continue
+### 		fi
+### 
+### 		# Controllo di presenza alias in ALIASINITFILE
+### 		# --- DA IMPLEMENTARE (To implement yet)
+### 
+### 		echo "alias ${an}='${av}'" >> $ALIASINITFILE
+### 		((giro++))
+### 	done
 
-	giro=0
-	TOT=0
-	while [ -n "${ALIASNAME[$giro]}" ]
-	do
-		an=${ALIASNAME[$giro]}
-		av=${ALIASVALUE[$giro]}
+ 	giro=0
+ 	TOT=0
+ 	while [ -n "${ALIASNAME[$giro]}" ]
+ 	do
+		echo "giro = $giro" #GABODebug
+ 		an=${ALIASNAME[$giro]}
+ 		av=${ALIASVALUE[$giro]}
+		an_esc=$(escapedot "$an")
+ 
+		if (grep -q "^ *alias  *$an_esc *=" $ALIASINITFILE); then
 
-		# Controllo di presenza alias in memoria nella SHELL corrente
-		# (settato da qualcosa o qualcuno)
-		res=$(alias $an 2>/dev/null)
-		ret=$?
-		if [ $ret -eq 0 ]; then
-			echo -e "CAUTION: alias \"$an\" is currently assigned this way:"
-			echo -e "   $res "
-			echo -e "Confirming, it should be replaced by this:"
-			echo -e "   alias ${an}='${av}'"
-			echo ""
-			sino "Ok to replace it?"
-			[ "$SINO" = "N" ] && continue
-		fi
+#			echo "an = $an" #GABODebug
+#			echo "an_esc = $an_esc" #GABODebug
+			aaa=$(grep "^ *alias  *$an_esc *=" $ALIASINITFILE | tail -n1 | cut -f2- -d"=")
+			res=$(trim "$aaa")
 
-		# Controllo di presenza alias in ALIASINITFILE
-		# --- DA IMPLEMENTARE (To implement yet)
-
-		echo "alias ${an}='${av}'" >> $ALIASINITFILE
-		((giro++))
-	done
+ 			echo -e "CAUTION: alias \"$an\" is currently assigned this way:"
+ 			echo -e "   $res "
+ 			echo -e "Confirming, it should be replaced by this:"
+ 			echo -e "   alias ${an}='${av}'"
+ 			echo ""
+ 			sino "Ok to replace it?" "N"
+ 			[ "$SINO" = "N" ] && { ((giro++)); continue; }
+ 		fi
+ 
+ 		# Controllo di presenza alias in ALIASINITFILE
+ 		# --- DA IMPLEMENTARE (To implement yet)
+ 
+ 		echo "alias ${an}='${av}'" >> $ALIASINITFILE
+ 		((giro++))
+ 	done
 
 ###
 ## Prompt colorati
@@ -550,40 +599,40 @@ if [ $SINO = "Y" ]; then
 	RH)
 		;;
 	ARC)
-
+		sudo pacman -Syu
+		sudo pacman -S bash-completion sudo linux-headers make gcc vim lsb-release mc htop lshw
+		sino "Have I to install needed packages for a LAMP system?" "N"
+		if [ $SINO = "S" ]; then
+			pacman -S apache php php-apache phpmyadmin mariadb
+		fi
+		sino "Have I to install a minimal collection for a graphic environment (Xorg,DE)?" "N"
+		if [ $SINO = "S" ]; then
+			pacman -S gdm xorg-xrandr libxrandr lxrandr libva-mesa-driver mesa mesa-libgl \
+				mesa-libgl lightdm xorg-server xorg-xinit mesa xorg-twm xterm xorg-xclock cinnamon \
+				nemo-fileroller fvwm fvwm-crystal cinnamon-desktop xorg-xauth xorg-server xterm \
+				lightdm wayland mate-desktop S extra/xf86-video-amdgpu extra/xf86-video-ati \
+				extra/xf86-video-dummy extra/xf86-video-fbdev extra/xf86-video-intel \
+				extra/xf86-video-nouveau extra/xf86-video-openchrome extra/xf86-video-vesa extra/xf86-video-vmware \
+				xorg-xinit
+		fi
 #  1) installerei pacaur (che è un pacman per AUR, davvero molto comodo, sebbene non sono sicuro ti serva a nulla)
-# 2) pacman -S apache php php-apache phpmyadmin mariadb (mysql credo sia in aur) - non so se serve il driver mysqlnd
 # 3) https://wiki.archlinux.org/index.php/Codecs qui ci sta la lista codec, anche se io in genere uso GStreamer e mi salvo
-# 
-# Non so debian ma arch è basata su systemd, ricordatelo per farti lo script che ti fa lo start/stop dello stack lamp.
-# In tutto questo AUR non è servito a nulla, quindi il punto 1 puoi pure skipparlo se vuoi, dipende da cosa vuoi farne o meno
-# 
-# ALTRI COMANDI DATI DOPO INSTALLAZIONE DI ARCH:
-#    sudo pacman -S xorg-server xorg-xinit mesa xorg-twm xterm xorg-xclock cinnamon nemo-fileroller
+
 #    systemctl enable dhcpcd
 #    systemctl enable sshd
 #    systemctl start sshd
 #    useradd gabo -m
 #    passwd gabo
 #    vi /etc/group
-#    sudo pacman -S sudo fvwm fvwm-crystal cinnamon-desktop xorg-xauth xorg-server xterm lightdm wayland mate-desktop linux-headers make gcc
 #    vi /etc/group
 #    groupadd -g 27 sudo
 #    usermod gabo -G sudo -a
 #    visudo
-# 
-#    sudo pacman -S extra/xf86-video-amdgpu extra/xf86-video-ati extra/xf86-video-dummy extra/xf86-video-fbdev extra/xf86-video-intel extra/xf86-video-nouveau extra/xf86-video-openchrome extra/xf86-video-vesa extra/xf86-video-vmware
-#    sudo pacman -Syu
-#   pkgfile startx
-#   sudo pacman -S xorg-xinit vim
 #   vi rc.conf
 #   vim /etc/dhcpcd.conf 
 #   cd /usr/bin/
 #   mv vi vi.old
 #   ln -s vim vi
-#   sudo pacman -S bash-completion gdm xorg-xrandr libxrandr lxrandr lsb-release libva-mesa-driver mesa mesa-libgl mesa-libgl lightdm
-# 
-
 
 		;;
 	SUS)
