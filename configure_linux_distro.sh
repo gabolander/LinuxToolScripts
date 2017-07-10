@@ -461,7 +461,7 @@ if [ $SINO = "Y" ]; then
  	TOT=0
  	while [ -n "${ALIASNAME[$giro]}" ]
  	do
-		echo "giro = $giro" #GABODebug
+#		echo "giro = $giro" #GABODebug
  		an=${ALIASNAME[$giro]}
  		av=${ALIASVALUE[$giro]}
 		an_esc=$(escapedot "$an")
@@ -598,20 +598,24 @@ if [ $SINO = "Y" ]; then
 		;;
 	RH)
 		LC_ALL=C sudo yum -y groupinstall 'Development Tools'
-		yum -y install gcc gcc-c++ make openssl-devel kernel-devel
+		# yum -y install gcc gcc-c++ make openssl-devel kernel-devel
+		sudo yum -y install openssl-devel wget curl
+
 		# FIXME: This is good only for Enterprise Linux versions (CentOS, RHEL) ...
 		lastdir=$(pwd)
 		cd /tmp
 		# CentOS 7 64
 		## RHEL/CentOS 7 64-Bit ##
 		wget http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-9.noarch.rpm
-		rpm -ivh epel-release-7-9.noarch.rpm
+		sudo rpm -ivh epel-release-7-9.noarch.rpm
 		## RHEL/CentOS 6 32-Bit ##
 		# wget http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
 		# rpm -ivh epel-release-6-8.noarch.rpm
 		## RHEL/CentOS 6 64-Bit ##
 		# wget http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
 		# rpm -ivh epel-release-6-8.noarch.rpm
+		sudo yum -y update
+		sudo yum -y install htop mc mlocate vim openssh-server redhat-lsb dialog git
 		;;
 	ARC)
 		sudo pacman -Syu
