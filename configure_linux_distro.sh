@@ -358,6 +358,140 @@ if [ -x /usr/bin/lsb_release ]; then
 
 elif [ -f /etc/issue ]; then
 	:
+
+
+### CENTOS6
+## [gabo@centos6 ~]$ lsb_release -a
+## LSB Version:    :base-4.0-amd64:base-4.0-noarch:core-4.0-amd64:core-4.0-noarch:graphics-4.0-amd64:graphics-4.0-noarch:printing-4.0-amd64:printing-4.0-noarch
+## Distributor ID: CentOS
+## Description:    CentOS release 6.9 (Final)
+## Release:        6.9
+## Codename:       Final
+## [gabo@centos6 ~]$ cat /etc/issue
+## CentOS release 6.9 (Final)
+## Kernel \r on an \m
+## 
+## [gabo@centos6 ~]$ cat /etc/redhat-release
+## CentOS release 6.9 (Final)
+## [gabo@centos6 ~]$
+
+
+### CENTOS7
+## [gabo@localhost ~]$ lsb_release -a
+## LSB Version:    :core-4.1-amd64:core-4.1-noarch:cxx-4.1-amd64:cxx-4.1-noarch:desktop-4.1-amd64:desktop-4.1-noarch:languages-4.1-amd64:languages-4.1-noarch:printing-4.1-amd64:printing-4.1-noarch
+## Distributor ID: CentOS
+## Description:    CentOS Linux release 7.3.1611 (Core) 
+## Release:        7.3.1611
+## Codename:       Core
+## [gabo@localhost ~]$ cat /etc/issue
+## \S
+## Kernel \r on an \m
+## 
+## [gabo@localhost ~]$ cat /etc/redhat-
+## redhat-lsb/     redhat-release  
+## [gabo@localhost ~]$ cat /etc/redhat-release 
+## CentOS Linux release 7.3.1611 (Core) 
+## [gabo@localhost ~]$ 
+
+#### FEDORA 25
+## [gabo@fedora64vm ~]$ lsb_release -a
+## LSB Version:    :core-4.1-amd64:core-4.1-noarch:cxx-4.1-amd64:cxx-4.1-noarch:desktop-4.1-amd64:desktop-4.1-noarch:languages-4.1-amd64:languages-4.1-noarch:printing-4.1-amd64:printing-4.1-noarch
+## Distributor ID: Fedora
+## Description:    Fedora release 25 (Twenty Five)
+## Release:        25
+## Codename:       TwentyFive
+## [gabo@fedora64vm ~]$ cat /etc/issue
+## issue      issue.net  
+## [gabo@fedora64vm ~]$ cat /etc/issue
+## \S
+## Kernel \r on an \m (\l)
+## 
+## [gabo@fedora64vm ~]$ cat /etc/redhat-
+## redhat-lsb/     redhat-release  
+## [gabo@fedora64vm ~]$ cat /etc/redhat-release 
+## Fedora release 25 (Twenty Five)
+## [gabo@fedora64vm ~]$ 
+
+
+### UBUNTU 14.04 SERVER LTS
+## gabo@ubunuserver:~$ lsb_release -a
+## No LSB modules are available.
+## Distributor ID:	Ubuntu
+## Description:	Ubuntu 14.04.3 LTS
+## Release:	14.04
+## Codename:	trusty
+## gabo@ubunuserver:~$ cat /etc/issue
+## Ubuntu 14.04.3 LTS \n \l
+## 
+## gabo@ubunuserver:~$ cat /etc/debian_version 
+## jessie/sid
+## gabo@ubunuserver:~$ 
+
+### LINUX MINT 17.3 ROSA
+## gabo@Mint-VBox ~ $ lsb_release -a
+## No LSB modules are available.
+## Distributor ID:	LinuxMint
+## Description:	Linux Mint 17.3 Rosa
+## Release:	17.3
+## Codename:	rosa
+## gabo@Mint-VBox ~ $ cat /etc/issue
+## Linux Mint 17.3 Rosa \n \l
+## gabo@Mint-VBox ~ $ cat /etc/debian_version 
+## jessie/sid
+## gabo@Mint-VBox ~ $ uname -a
+## Linux Mint-VBox 3.19.0-32-generic #37~14.04.1-Ubuntu SMP Thu Oct 22 09:41:40 UTC 2015 x86_64 x86_64 x86_64 GNU/Linux
+
+### LMDE 2
+## gabo@lmde-vbox ~ $ lsb_release -a
+## LSB Version:	core-2.0-amd64:core-2.0-noarch:core-3.0-amd64:core-3.0-noarch:core-3.1-amd64:core-3.1-noarch:core-3.2-amd64:core-3.2-noarch:core-4.0-amd64:core-4.0-noarch:core-4.1-amd64:core-4.1-noarch:security-4.0-amd64:security-4.0-noarch:security-4.1-amd64:security-4.1-noarch
+## Distributor ID:	LinuxMint
+## Description:	LMDE 2 Betsy
+## Release:	2
+## Codename:	betsy
+## gabo@lmde-vbox ~ $ cat /etc/issue
+## LMDE 2 Betsy \n \l
+## gabo@lmde-vbox ~ $ cat /etc/debian_version 
+## 8.8
+## gabo@lmde-vbox ~ $ uname -a
+## Linux lmde-vbox 3.16.0-4-amd64 #1 SMP Debian 3.16.43-2+deb8u1 (2017-06-18) x86_64 GNU/Linux
+## gabo@lmde-vbox ~ $ 
+
+### OPENSUSE LEAP 42.1
+## gabo@linux-fbm1:/> lsb_release -a
+## LSB Version:    n/a
+## Distributor ID: SUSE LINUX
+## Description:    openSUSE Leap 42.1 (x86_64)
+## Release:        42.1
+## Codename:       n/a
+## gabo@linux-fbm1:/> cat /etc/issue
+## Welcome to openSUSE Leap 42.1 - Kernel \r (\l).
+## 
+## gabo@linux-fbm1:/> cat /etc/SuSE-release 
+## openSUSE 42.1 (x86_64)
+## VERSION = 42.1
+## CODENAME = Malachite
+## # /etc/SuSE-release is deprecated and will be removed in the future, use /etc/os-release instead
+## gabo@linux-fbm1:/> 
+
+### OPENSUSE TUMBLEWEED 
+## gabo@susetw-vbox:~> lsb_release -a
+## LSB Version:	n/a
+## Distributor ID:	openSUSE
+## Description:	openSUSE Tumbleweed
+## Release:	20170622
+## Codename:	n/a
+## gabo@susetw-vbox:~> cat /etc/issue
+## Welcome to openSUSE Tumbleweed 20170622 - Kernel \r (\l).
+## 
+## enp0s3: \4{enp0s3} \6{enp0s3}
+## 
+## 
+## gabo@susetw-vbox:~> cat /etc/SUSE-brand 
+## openSUSE
+## VERSION = 13.3
+
+
+
 fi
 
 
