@@ -597,17 +597,33 @@ if [ $SINO = "Y" ]; then
 		fi
 		;;
 	RH)
+		LC_ALL=C sudo yum -y groupinstall 'Development Tools'
+		yum -y install gcc gcc-c++ make openssl-devel kernel-devel
+		# FIXME: This is good only for Enterprise Linux versions (CentOS, RHEL) ...
+		lastdir=$(pwd)
+		cd /tmp
+		# CentOS 7 64
+		## RHEL/CentOS 7 64-Bit ##
+		wget http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-9.noarch.rpm
+		rpm -ivh epel-release-7-9.noarch.rpm
+		## RHEL/CentOS 6 32-Bit ##
+		# wget http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
+		# rpm -ivh epel-release-6-8.noarch.rpm
+		## RHEL/CentOS 6 64-Bit ##
+		# wget http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+		# rpm -ivh epel-release-6-8.noarch.rpm
 		;;
 	ARC)
 		sudo pacman -Syu
-		sudo pacman -S bash-completion sudo linux-headers make gcc vim lsb-release mc htop lshw
+		sudo pacman -S base-devel bash-completion sudo linux-headers \
+					make gcc vim lsb-release mc htop lshw mlocate
 		sino "Have I to install needed packages for a LAMP system?" "N"
 		if [ $SINO = "S" ]; then
-			pacman -S apache php php-apache phpmyadmin mariadb
+			sudo pacman -S apache php php-apache phpmyadmin mariadb
 		fi
 		sino "Have I to install a minimal collection for a graphic environment (Xorg,DE)?" "N"
 		if [ $SINO = "S" ]; then
-			pacman -S gdm xorg-xrandr libxrandr lxrandr libva-mesa-driver mesa mesa-libgl \
+			sudo pacman -S gdm xorg-xrandr libxrandr lxrandr libva-mesa-driver mesa mesa-libgl \
 				mesa-libgl lightdm xorg-server xorg-xinit mesa xorg-twm xterm xorg-xclock cinnamon \
 				nemo-fileroller fvwm fvwm-crystal cinnamon-desktop xorg-xauth xorg-server xterm \
 				lightdm wayland mate-desktop S extra/xf86-video-amdgpu extra/xf86-video-ati \
