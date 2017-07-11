@@ -35,6 +35,8 @@ TMPDIR=`mktemp -d /tmp/${PRGBASE}_temp_dir_XXXXX`
 TMP1="$TMPDIR/${PRGBASE}-1_temp"
 TMP2="$TMPDIR/${PRGBASE}-2_temp"
 TMP3="$TMPDIR/${PRGBASE}-2_temp"
+FIFO1="$TMPDIR/${PRGBASE}-fifo_1"
+mkfifo "$FIFO1"
 TEMPORANEI="$TMPDIR"
 
 ## Log
@@ -330,8 +332,13 @@ REL=
 #  SUS - SuSE Linux
 #  ARC - ArchLinux
 # ... per ora non altri
+DISTROARCH=$(uname -m)
 if [ -x /usr/bin/lsb_release ]; then
- lsbdescr=`lsb_release -a 2>/dev/null| grep ^Descr | cut -f2 -d: | sed "s/^\s*//" | sed "s/\s*$//"`
+ lsb_release -a 2>/dev/null > "$TMP1"
+ lsbdescr=`grep ^Descr "$TMP1" | cut -f2 -d: | sed "s/^\s*//" | sed "s/\s*$//"`
+ DISTRIBID=`grep ^Distributor "$TMP1" | cut -f2 -d: | sed "s/^\s*//" | sed "s/\s*$//"`
+ DISTROREL=`grep ^Releas "$TMP1" | cut -f2 -d: | sed "s/^\s*//" | sed "s/\s*$//"`
+ DISTROCODE=`grep ^Codena "$TMP1" | cut -f2 -d: | sed "s/^\s*//" | sed "s/\s*$//"`
 
  case $lsbdescr in
 	Debian*|Ubunt*|LMDE*)
@@ -358,7 +365,49 @@ if [ -x /usr/bin/lsb_release ]; then
 
 elif [ -f /etc/issue ]; then
 	:
+	if [ -f /etc/redhat-release ]; then
+		# RH based recognized
+		DISTRO=RH
+		DISTROTEXT="Redhat based"
+        rel=$(cat /etc/redhat-release | head -n 1)
+        DISTROREL=$(echo $rel | grep -ioP "[0-9\.]+")
+        DISTROCODE=$(echo $rel | grep -ioP "\([^\)]+\)" | sed -e "s/^(//" -e "s/)$//")
+        des1=$(echo $rel | sed "s/release.*$//")
+        shopt -s nocasematch # Imposto l'ignore case
+        if [[ "$rel" =~ Red\ Hat ]]; then
+         lsbdescr=$rel
+         DISTRIBID=$(echo $des1 | tr -d "[:space:]")
+        elif  [[ "$rel" =~ CentOS ]] || [[ "$rel" =~ Fedora ]]; then
+         lsbdescr=$rel
+         DISTRIBID=$(echo $des1 |  cut -f1 -d" ")
+        fi
+        shopt -u nocasematch # Disattivo l'ignore case
+	elif [ -f /etc/debian_version ]; then
+		# Debian based recognized
+		DISTRO=DEB
+		DISTROTEXT="Debian based"
+        rel=$(cat /etc/debian_version | head -n 1)
+	elif [ -f /etc/arch-release ]; then
+		DISTRO=ARC
+		DISTROTEXT="Arch Linux"
+        rel=$(cat /etc/arch-release | head -n 1)
+	fi
 
+
+### REDHAT7
+## LSB Version:    :core-4.1-amd64:core-4.1-noarch:cxx-4.1-amd64:cxx-4.1-noarch:desktop-4.1-amd64:desktop-4.1-noarch:languages-4.1-amd64:languages-4.1-noarch:printing-4.1-amd64:printing-4.1-noarch
+## Distributor ID: RedHatEnterpriseServer
+## Description:    Red Hat Enterprise Linux Server release 7.3 (Maipo)
+## Release:        7.3
+## Codename:       Maipo
+## 
+## root@rh7vbox ~]# cat /etc/issue
+## \S
+## Kernel \r on an \m
+## 
+## [root@rh7vbox ~]# cat /etc/redhat-release 
+## Red Hat Enterprise Linux Server release 7.3 (Maipo)
+## [root@rh7vbox ~]# 
 
 ### CENTOS6
 ## [gabo@centos6 ~]$ lsb_release -a
@@ -387,11 +436,8 @@ elif [ -f /etc/issue ]; then
 ## \S
 ## Kernel \r on an \m
 ## 
-## [gabo@localhost ~]$ cat /etc/redhat-
-## redhat-lsb/     redhat-release  
 ## [gabo@localhost ~]$ cat /etc/redhat-release 
 ## CentOS Linux release 7.3.1611 (Core) 
-## [gabo@localhost ~]$ 
 
 #### FEDORA 25
 ## [gabo@fedora64vm ~]$ lsb_release -a
@@ -401,13 +447,9 @@ elif [ -f /etc/issue ]; then
 ## Release:        25
 ## Codename:       TwentyFive
 ## [gabo@fedora64vm ~]$ cat /etc/issue
-## issue      issue.net  
-## [gabo@fedora64vm ~]$ cat /etc/issue
 ## \S
 ## Kernel \r on an \m (\l)
 ## 
-## [gabo@fedora64vm ~]$ cat /etc/redhat-
-## redhat-lsb/     redhat-release  
 ## [gabo@fedora64vm ~]$ cat /etc/redhat-release 
 ## Fedora release 25 (Twenty Five)
 ## [gabo@fedora64vm ~]$ 
@@ -490,6 +532,19 @@ elif [ -f /etc/issue ]; then
 ## openSUSE
 ## VERSION = 13.3
 
+### ARCH LINUX
+## [root@arch64-vbox ~]# lsb_release -a
+## LSB Version:    1.4
+## Distributor ID: Arch
+## Description:    Arch Linux
+## Release:        rolling
+## Codename:       n/a
+## [root@arch64-vbox ~]# cat /etc/issue 
+## Arch Linux \r (\l)
+## 
+## [root@arch64-vbox ~]# cat /etc/arch-release 
+## Arch Linux release
+## [root@arch64-vbox ~]# 
 
 
 fi
@@ -498,7 +553,20 @@ fi
 ## Fine indagine Linux
 echo -ne "\r                    \r"
 
+ lsbdescr=`grep ^Descr "$TMP1" | cut -f2 -d: | sed "s/^\s*//" | sed "s/\s*$//"`
+ DISTRIBID=`grep ^Distributor "$TMP1" | cut -f2 -d: | sed "s/^\s*//" | sed "s/\s*$//"`
+ DISTROREL=`grep ^Releas "$TMP1" | cut -f2 -d: | sed "s/^\s*//" | sed "s/\s*$//"`
+ DISTROCODE=`grep ^Codena "$TMP1" | cut -f2 -d: | sed "s/^\s*//" | sed "s/\s*$//"`
+		DISTRO=DEB
+		DISTROTEXT="Debian based"
+
 logga "Recognized version/distribution : $DISTROTEXT ($DISTRO)"
+logga "   Description ..: $lsbdescr"
+logga "   Distributor ID: $DISTRIBID"
+logga "   Release ......: $DISTROREL"
+logga "   Codename .....: $DISTROCODE"
+logga "   Architecture .: $DISTROARCH"
+logga "  "
 
 
 sino "Do I continue with process?" "N"
@@ -733,7 +801,7 @@ if [ $SINO = "Y" ]; then
 	RH)
 		LC_ALL=C sudo yum -y groupinstall 'Development Tools'
 		# yum -y install gcc gcc-c++ make openssl-devel kernel-devel
-		sudo yum -y install openssl-devel wget curl
+		sudo yum -y install openssl-devel wget curl bash-completion
 
 		# FIXME: This is good only for Enterprise Linux versions (CentOS, RHEL) ...
 		lastdir=$(pwd)
@@ -805,3 +873,5 @@ fi
 echo
 
 at_exit 0
+
+# ex: ts=4 sts=4 sw=4 et nohls:
