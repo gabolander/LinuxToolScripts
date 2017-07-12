@@ -828,7 +828,8 @@ if [ $SINO = "Y" ]; then
 	ARC)
 		sudo pacman -Syu
 		sudo pacman -S base-devel bash-completion sudo linux-headers \
-					make gcc vim lsb-release mc htop lshw mlocate openssh dhcpcd
+					make gcc vim lsb-release mc htop lshw mlocate openssh dhcpcd \
+                    binutils gcc fakeroot make --needed --noconfirm
         echo "I start essential services"
         sudo systemctl enable dhcpcd.service
         sudo systemctl start dhcpcd.service
@@ -837,7 +838,7 @@ if [ $SINO = "Y" ]; then
 
 		sino "Have I to install needed packages for a LAMP system?" "N"
 		if [ $SINO = "S" ]; then
-			sudo pacman -S apache php php-apache phpmyadmin mariadb
+			sudo pacman -S apache php php-apache phpmyadmin mariadb --needed --noconfirm
             echo "I start need services for LAMP"
             sudo systemctl enable httpd.service
             sudo systemctl start httpd.service
@@ -852,7 +853,7 @@ if [ $SINO = "Y" ]; then
 				lightdm wayland mate-desktop S extra/xf86-video-amdgpu extra/xf86-video-ati \
 				extra/xf86-video-dummy extra/xf86-video-fbdev extra/xf86-video-intel \
 				extra/xf86-video-nouveau extra/xf86-video-openchrome extra/xf86-video-vesa extra/xf86-video-vmware \
-				xorg-xinit
+				xorg-xinit --needed --noconfirm
 		fi
 # Thanks to pacaur_install.sh script (Tadly), got by https://gist.github.com/Tadly/0e65d30f279a34c33e9b
 		sino "Have I to install a minimal collection for a graphic environment (Xorg,DE)?" "N"
@@ -867,7 +868,7 @@ if [ $SINO = "Y" ]; then
 
             # If you didn't install the "base-devel" group,
             # we'll need those.
-            sudo pacman -S binutils make gcc fakeroot --noconfirm --needed
+            # sudo pacman -S binutils make gcc fakeroot --noconfirm --needed
 
             # Install pacaur dependencies from arch repos
             sudo pacman -S expac yajl git --noconfirm --needed
