@@ -613,9 +613,6 @@ if [ $SINO = "Y" ]; then
 		ALIASINITFILE=/etc/profile.d/colorls.sh
 		;;
 	ARC)
-		# GABODebug
-		# echo "Fixme: al momento, non gestisco $DISTROTEXT, sorry"
-		# at_exit 11
 		ALIASINITFILE=/etc/bash.bashrc
 		;;
 	SUS)
@@ -743,8 +740,8 @@ if [ $SINO = "Y" ]; then
 	if [ "$pschoose" -gt 0 ]; then
 		psroot_id=$(((pschoose-1)*2))
 		psuser_id=$((((pschoose-1)*2)+1))
-		echo "psuser_id=$psuser_id"
-		echo "psroot_id=$psroot_id"
+#		echo "psuser_id=$psuser_id"
+#		echo "psroot_id=$psroot_id"
 		echo "if [ \"\$UID\" -eq 0 ]; then "	>> $ALIASINITFILE
 		echo "  PS1='"${aps[$psroot_id]}"'" >> $ALIASINITFILE
 		echo "else"	                        >> $ALIASINITFILE
@@ -776,10 +773,19 @@ if [ $SINO = "Y" ]; then
 					build-essential linux-headers-$(uname -r) module-assistant dkms
 		sino "Have I to install needed packages for a LAMP system?" "N"
 		if [ $SINO = "S" ]; then
-			cat /etc/issue | grep -iq "Debian.* 9"
-			[ $? -eq 0 ] && MYSQL_PKGS="mariadb-client mariadb-server" \
-						 || MYSQL_PKGS="mysql-client mysql-server"
-			
+
+            # NO: In Debian purtroppo, in Release c'e' unstable/testing/stable anziche' il 
+            # numero .. quindi devo controllare il fottuto /etc/issue
+            # if [[ "${DISTROREL%%.*}" =~ ^[0-9]+$ ]] && [ "$DISTROREL" -ge 9 ]; then
+			#     MYSQL_PKGS="mariadb-client mariadb-server" 
+            # else
+			# 	MYSQL_PKGS="mysql-client mysql-server"
+            # fi
+
+            cat /etc/issue | grep -iq "Debian.* 9"
+            [ $? -eq 0 ] && MYSQL_PKGS="mariadb-client mariadb-server" \
+                         || MYSQL_PKGS="mysql-client mysql-server"
+
 			apt-get install apache2 php $MYSQL_PKGS phpmyadmin
 		fi
 		sino "Do I install deb-multimedia" "N"
@@ -822,10 +828,21 @@ if [ $SINO = "Y" ]; then
 	ARC)
 		sudo pacman -Syu
 		sudo pacman -S base-devel bash-completion sudo linux-headers \
-					make gcc vim lsb-release mc htop lshw mlocate
+					make gcc vim lsb-release mc htop lshw mlocate openssh dhcpcd
+        echo "I start essential services"
+        sudo systemctl enable dhcpcd.service
+        sudo systemctl start dhcpcd.service
+        sudo systemctl enable sshd.service
+        sudo systemctl start sshd.service
+
 		sino "Have I to install needed packages for a LAMP system?" "N"
 		if [ $SINO = "S" ]; then
 			sudo pacman -S apache php php-apache phpmyadmin mariadb
+            echo "I start need services for LAMP"
+            sudo systemctl enable httpd.service
+            sudo systemctl start httpd.service
+            sudo systemctl enable mariadb.service
+            sudo systemctl start mariadb.service
 		fi
 		sino "Have I to install a minimal collection for a graphic environment (Xorg,DE)?" "N"
 		if [ $SINO = "S" ]; then
@@ -837,25 +854,44 @@ if [ $SINO = "Y" ]; then
 				extra/xf86-video-nouveau extra/xf86-video-openchrome extra/xf86-video-vesa extra/xf86-video-vmware \
 				xorg-xinit
 		fi
-#  1) installerei pacaur (che è un pacman per AUR, davvero molto comodo, sebbene non sono sicuro ti serva a nulla)
-# 3) https://wiki.archlinux.org/index.php/Codecs qui ci sta la lista codec, anche se io in genere uso GStreamer e mi salvo
+# Thanks to pacaur_install.sh script (Tadly), got by https://gist.github.com/Tadly/0e65d30f279a34c33e9b
+		sino "Have I to install a minimal collection for a graphic environment (Xorg,DE)?" "N"
+		if [ $SINO = "S" ]; then
+            # Make sure our shiny new arch is up-to-date
+            ## echo "Checking for system updates..." ## Not needed: I already did before ...
+            ## sudo pacman -Syu
 
-#    systemctl enable dhcpcd
-#    systemctl enable sshd
-#    systemctl start sshd
-#    useradd gabo -m
-#    passwd gabo
-#    vi /etc/group
-#    vi /etc/group
-#    groupadd -g 27 sudo
-#    usermod gabo -G sudo -a
-#    visudo
-#   vi rc.conf
-#   vim /etc/dhcpcd.conf 
-#   cd /usr/bin/
-#   mv vi vi.old
-#   ln -s vim vi
+            # Create a tmp-working-dir and navigate into it
+            mkdir -p /tmp/pacaur_install
+            cd /tmp/pacaur_install
 
+            # If you didn't install the "base-devel" group,
+            # we'll need those.
+            sudo pacman -S binutils make gcc fakeroot --noconfirm --needed
+
+            # Install pacaur dependencies from arch repos
+            sudo pacman -S expac yajl git --noconfirm --needed
+
+            # Install "cower" from AUR
+            if [ ! -n "$(pacman -Qs cower)" ]; then
+                curl -o PKGBUILD https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=cower
+                makepkg PKGBUILD --skippgpcheck --install --needed
+            fi
+
+            # Install "pacaur" from AUR
+            if [ ! -n "$(pacman -Qs pacaur)" ]; then
+                curl -o PKGBUILD https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=pacaur
+                makepkg PKGBUILD --install --needed
+            fi
+
+            # Clean up...
+            cd -
+            rm -rf /tmp/pacaur_install
+        fi
+        # I link vim to vi .. really more confortable :-)
+        cd /usr/bin/
+        mv vi vi.old
+        ln -s vim vi
 		;;
 	SUS)
 		;;
