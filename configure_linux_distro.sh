@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/bash
 LANG="it_IT.UTF-8"
 export LANG
 
@@ -333,6 +333,7 @@ REL=
 #  ARC - ArchLinux
 # ... per ora non altri
 DISTROARCH=$(uname -m)
+mkdir -p "$TMPDIR"
 if [ -x /usr/bin/lsb_release ]; then
  lsb_release -a 2>/dev/null > "$TMP1"
  lsbdescr=`grep ^Descr "$TMP1" | cut -f2 -d: | sed "s/^\s*//" | sed "s/\s*$//"`
@@ -391,6 +392,8 @@ elif [ -f /etc/issue ]; then
 		DISTRO=ARC
 		DISTROTEXT="Arch Linux"
         rel=$(cat /etc/arch-release | head -n 1)
+		lsbdescr="Archlinux"
+		DISTRIBID="Archlinux"
 	fi
 
 fi
@@ -398,13 +401,6 @@ fi
 
 ## Fine indagine Linux
 echo -ne "\r                    \r"
-
- lsbdescr=`grep ^Descr "$TMP1" | cut -f2 -d: | sed "s/^\s*//" | sed "s/\s*$//"`
- DISTRIBID=`grep ^Distributor "$TMP1" | cut -f2 -d: | sed "s/^\s*//" | sed "s/\s*$//"`
- DISTROREL=`grep ^Releas "$TMP1" | cut -f2 -d: | sed "s/^\s*//" | sed "s/\s*$//"`
- DISTROCODE=`grep ^Codena "$TMP1" | cut -f2 -d: | sed "s/^\s*//" | sed "s/\s*$//"`
-		DISTRO=DEB
-		DISTROTEXT="Debian based"
 
 logga "Recognized version/distribution : $DISTROTEXT ($DISTRO)"
 logga "   Description ..: $lsbdescr"
@@ -618,7 +614,7 @@ if [ $SINO = "Y" ]; then
 			&& apt install aptitude apt-file htop mc mlocate vim openssh-server lsb-release\
 					build-essential linux-headers-$(uname -r) module-assistant dkms
 		sino "Have I to install needed packages for a LAMP system?" "N"
-		if [ $SINO = "S" ]; then
+		if [ $SINO = "Y" ]; then
 
             # NO: In Debian purtroppo, in Release c'e' unstable/testing/stable anziche' il 
             # numero .. quindi devo controllare il fottuto /etc/issue
@@ -639,10 +635,10 @@ if [ $SINO = "Y" ]; then
         if ( [ "$DISTROARCH" = "x86_64" ] ||  [ "$DISTROARCH" = "amd64" ] ) && 
          ! [ "$(dpkg --print-foreign-architectures)" = "i386" ]; then
             sino "Do I install Multi-Arch (you can run 32bit apps too on a 64bit system)" "N"
-            if [ $SINO = "S" ]; then
-                sudo dpkg --add-architecture i386
-                sudo apt-get update
-                sudo apt-get install libstdc++6:i386 libgcc1:i386 zlib1g:i386 libncurses5:i386
+            if [ $SINO = "Y" ]; then
+                dpkg --add-architecture i386
+                apt-get update
+                apt-get install libstdc++6:i386 libgcc1:i386 zlib1g:i386 libncurses5:i386
             fi
         fi
 
@@ -657,14 +653,14 @@ if [ $SINO = "Y" ]; then
                 echo "deb-multimedia seems installed already... going over."
             else
                 sino "Do I install deb-multimedia" "N"
-                if [ $SINO = "S" ]; then
+                if [ $SINO = "Y" ]; then
                     # I try to determine revision (jessie,stretch,stable,testing,etc.) from installed sources.list ...
                     Rev=$(grep -Pw  "^[^#]*deb .* +main" /etc/apt/sources.list | grep -v "[/-]updates" \
                             | head -n1 | awk '{print $3}')
                     [ -z "$Rev" ] && Rev="$DISTROCODE"
                     wget http://www.deb-multimedia.org/pool/main/d/deb-multimedia-keyring/deb-multimedia-keyring_2016.8.1_all.deb \
                             -O /tmp/deb-multimedia-keyring_2016.8.1_all.deb
-                    sudo dpkg -i /tmp/deb-multimedia-keyring_2016.8.1_all.deb
+                    dpkg -i /tmp/deb-multimedia-keyring_2016.8.1_all.deb
 
                     grep -q "deb-multimedia.org" /etc/apt/sources.list
                     if [ $? -ne 0 ]; then
@@ -680,9 +676,9 @@ if [ $SINO = "Y" ]; then
         shopt -u nocasematch
 		;;
 	RH)
-		LC_ALL=C sudo yum -y groupinstall 'Development Tools'
+		LC_ALL=C yum -y groupinstall 'Development Tools'
 		# yum -y install gcc gcc-c++ make openssl-devel kernel-devel
-		sudo yum -y install openssl-devel wget curl bash-completion
+		yum -y install openssl-devel wget curl bash-completion
 
 		# FIXME: This is good only for Enterprise Linux versions (CentOS, RHEL) ...
 		lastdir=$(pwd)
@@ -690,39 +686,39 @@ if [ $SINO = "Y" ]; then
 		# CentOS 7 64
 		## RHEL/CentOS 7 64-Bit ##
 		wget http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-9.noarch.rpm
-		sudo rpm -ivh epel-release-7-9.noarch.rpm
+		rpm -ivh epel-release-7-9.noarch.rpm
 		## RHEL/CentOS 6 32-Bit ##
 		# wget http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
 		# rpm -ivh epel-release-6-8.noarch.rpm
 		## RHEL/CentOS 6 64-Bit ##
 		# wget http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
 		# rpm -ivh epel-release-6-8.noarch.rpm
-		sudo yum -y update
-		sudo yum -y install htop mc mlocate vim openssh-server redhat-lsb dialog git
+		yum -y update
+		yum -y install htop mc mlocate vim openssh-server redhat-lsb dialog git
 		;;
 	ARC)
-		sudo pacman -Syu
-		sudo pacman -S base-devel bash-completion sudo linux-headers \
+		pacman -Syu
+		pacman -S base-devel bash-completion sudo linux-headers \
 					make gcc vim lsb-release mc htop lshw mlocate openssh dhcpcd \
                     binutils gcc fakeroot make --needed --noconfirm
         echo "I start essential services"
-        sudo systemctl enable dhcpcd.service
-        sudo systemctl start dhcpcd.service
-        sudo systemctl enable sshd.service
-        sudo systemctl start sshd.service
+        systemctl enable dhcpcd.service
+        systemctl start dhcpcd.service
+        systemctl enable sshd.service
+        systemctl start sshd.service
 
 		sino "Have I to install needed packages for a LAMP system?" "N"
-		if [ $SINO = "S" ]; then
-			sudo pacman -S apache php php-apache phpmyadmin mariadb --needed --noconfirm
+		if [ $SINO = "Y" ]; then
+			pacman -S apache php php-apache phpmyadmin mariadb --needed --noconfirm
             echo "I start need services for LAMP"
-            sudo systemctl enable httpd.service
-            sudo systemctl start httpd.service
-            sudo systemctl enable mariadb.service
-            sudo systemctl start mariadb.service
+            systemctl enable httpd.service
+            systemctl start httpd.service
+            systemctl enable mariadb.service
+            systemctl start mariadb.service
 		fi
 		sino "Have I to install a minimal collection for a graphic environment (Xorg,DE)?" "N"
-		if [ $SINO = "S" ]; then
-			sudo pacman -S gdm xorg-xrandr libxrandr lxrandr libva-mesa-driver mesa mesa-libgl \
+		if [ $SINO = "Y" ]; then
+			pacman -S gdm xorg-xrandr libxrandr lxrandr libva-mesa-driver mesa mesa-libgl \
 				mesa-libgl lightdm xorg-server xorg-xinit mesa xorg-twm xterm xorg-xclock cinnamon \
 				nemo-fileroller fvwm fvwm-crystal cinnamon-desktop xorg-xauth xorg-server xterm \
 				lightdm wayland mate-desktop S extra/xf86-video-amdgpu extra/xf86-video-ati \
@@ -732,10 +728,10 @@ if [ $SINO = "Y" ]; then
 		fi
 # Thanks to pacaur_install.sh script (Tadly), got by https://gist.github.com/Tadly/0e65d30f279a34c33e9b
 		sino "Have I to install a minimal collection for a graphic environment (Xorg,DE)?" "N"
-		if [ $SINO = "S" ]; then
+		if [ $SINO = "Y" ]; then
             # Make sure our shiny new arch is up-to-date
             ## echo "Checking for system updates..." ## Not needed: I already did before ...
-            ## sudo pacman -Syu
+            ## pacman -Syu
 
             # Create a tmp-working-dir and navigate into it
             mkdir -p /tmp/pacaur_install
@@ -743,10 +739,10 @@ if [ $SINO = "Y" ]; then
 
             # If you didn't install the "base-devel" group,
             # we'll need those.
-            # sudo pacman -S binutils make gcc fakeroot --noconfirm --needed
+            # pacman -S binutils make gcc fakeroot --noconfirm --needed
 
             # Install pacaur dependencies from arch repos
-            sudo pacman -S expac yajl git --noconfirm --needed
+            pacman -S expac yajl git --noconfirm --needed
 
             # Install "cower" from AUR
             if [ ! -n "$(pacman -Qs cower)" ]; then
