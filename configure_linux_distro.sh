@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 LANG="it_IT.UTF-8"
 export LANG
 
@@ -721,13 +721,13 @@ if [ $SINO = "Y" ]; then
 			pacman -S gdm xorg-xrandr libxrandr lxrandr libva-mesa-driver mesa mesa-libgl \
 				mesa-libgl lightdm xorg-server xorg-xinit mesa xorg-twm xterm xorg-xclock cinnamon \
 				nemo-fileroller fvwm fvwm-crystal cinnamon-desktop xorg-xauth xorg-server xterm \
-				lightdm wayland mate-desktop S extra/xf86-video-amdgpu extra/xf86-video-ati \
+				lightdm wayland mate-desktop extra/xf86-video-amdgpu extra/xf86-video-ati \
 				extra/xf86-video-dummy extra/xf86-video-fbdev extra/xf86-video-intel \
 				extra/xf86-video-nouveau extra/xf86-video-openchrome extra/xf86-video-vesa extra/xf86-video-vmware \
 				xorg-xinit --needed --noconfirm
 		fi
 # Thanks to pacaur_install.sh script (Tadly), got by https://gist.github.com/Tadly/0e65d30f279a34c33e9b
-		sino "Have I to install a minimal collection for a graphic environment (Xorg,DE)?" "N"
+		sino "Have I to install PACAUR (package manager for AUR repository)?" "N"
 		if [ $SINO = "Y" ]; then
             # Make sure our shiny new arch is up-to-date
             ## echo "Checking for system updates..." ## Not needed: I already did before ...
