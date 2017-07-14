@@ -725,6 +725,7 @@ if [ $SINO = "Y" ]; then
 				extra/xf86-video-dummy extra/xf86-video-fbdev extra/xf86-video-intel \
 				extra/xf86-video-nouveau extra/xf86-video-openchrome extra/xf86-video-vesa extra/xf86-video-vmware \
 				xorg-xinit --needed --noconfirm
+			# if in a virtualbox environment, "pacman -S virtualbox-guest-modules-arch" to make X work
 		fi
 # Thanks to pacaur_install.sh script (Tadly), got by https://gist.github.com/Tadly/0e65d30f279a34c33e9b
 		sino "Have I to install PACAUR (package manager for AUR repository)?" "N"
