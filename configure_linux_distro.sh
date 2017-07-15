@@ -676,9 +676,13 @@ if [ $SINO = "Y" ]; then
         shopt -u nocasematch
 		;;
 	RH)
-		LC_ALL=C yum -y groupinstall 'Development Tools'
-		# yum -y install gcc gcc-c++ make openssl-devel kernel-devel
-		yum -y install openssl-devel wget curl bash-completion
+        PKGMGR=yum
+        if [[ "$lsbdescr" =~ Fedora ]]; then
+            PKGMGR=dnf
+        fi
+		LC_ALL=C $PKGMGR -y groupinstall 'Development Tools'
+		# $PKGMGR -y install gcc gcc-c++ make openssl-devel kernel-devel
+		$PKGMGR -y install openssl-devel wget curl bash-completion
 
 		# FIXME: This is good only for Enterprise Linux versions (CentOS, RHEL) ...
 		lastdir=$(pwd)
@@ -693,8 +697,8 @@ if [ $SINO = "Y" ]; then
 		## RHEL/CentOS 6 64-Bit ##
 		# wget http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
 		# rpm -ivh epel-release-6-8.noarch.rpm
-		yum -y update
-		yum -y install htop mc mlocate vim openssh-server redhat-lsb dialog git
+		$PKGMGR -y update
+		$PKGMGR -y install htop mc mlocate vim openssh-server redhat-lsb dialog git
 		;;
 	ARC)
 		pacman -Syu
@@ -724,7 +728,10 @@ if [ $SINO = "Y" ]; then
 				lightdm wayland mate-desktop extra/xf86-video-amdgpu extra/xf86-video-ati \
 				extra/xf86-video-dummy extra/xf86-video-fbdev extra/xf86-video-intel \
 				extra/xf86-video-nouveau extra/xf86-video-openchrome extra/xf86-video-vesa extra/xf86-video-vmware \
-				xorg-xinit --needed --noconfirm
+				xorg-xinit lxde --needed --noconfirm
+            if (lspci | grep -iq virtualbox); then
+                pacman -S virtualbox-guest-modules-arch --noconfirm
+            fi
 			# if in a virtualbox environment, "pacman -S virtualbox-guest-modules-arch" to make X work
 		fi
 # Thanks to pacaur_install.sh script (Tadly), got by https://gist.github.com/Tadly/0e65d30f279a34c33e9b
@@ -735,7 +742,7 @@ if [ $SINO = "Y" ]; then
             ## pacman -Syu
 
             # Create a tmp-working-dir and navigate into it
-            mkdir -p /tmp/pacaur_install
+            sudo -u nobody mkdir -p /tmp/pacaur_install
             cd /tmp/pacaur_install
 
             # If you didn't install the "base-devel" group,
@@ -748,13 +755,15 @@ if [ $SINO = "Y" ]; then
             # Install "cower" from AUR
             if [ ! -n "$(pacman -Qs cower)" ]; then
                 curl -o PKGBUILD https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=cower
-                makepkg PKGBUILD --skippgpcheck --install --needed
+                sudo -u nobody makepkg PKGBUILD --skippgpcheck --needed
+                pacman -U cower*.pkg.tar.xz 
             fi
 
             # Install "pacaur" from AUR
             if [ ! -n "$(pacman -Qs pacaur)" ]; then
                 curl -o PKGBUILD https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=pacaur
-                makepkg PKGBUILD --install --needed
+                sudo -u nobody makepkg PKGBUILD --needed
+                pacman -U pacaur*.pkg.tar.xz
             fi
 
             # Clean up...
