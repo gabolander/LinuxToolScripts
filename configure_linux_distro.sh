@@ -341,6 +341,7 @@ if [ -x /usr/bin/lsb_release ]; then
  DISTROREL=`grep ^Releas "$TMP1" | cut -f2 -d: | sed "s/^\s*//" | sed "s/\s*$//"`
  DISTROCODE=`grep ^Codena "$TMP1" | cut -f2 -d: | sed "s/^\s*//" | sed "s/\s*$//"`
 
+ shopt -s nocasematch # Imposto l'ignore case
  case $lsbdescr in
 	Debian*|Ubunt*|LMDE*)
 		DISTRO=DEB
@@ -354,7 +355,7 @@ if [ -x /usr/bin/lsb_release ]; then
 		DISTRO=ARC
 		DISTROTEXT="Arch Linux"
 		;;
-	SuSE*)
+	SuSE*|openSUSE*)
 		DISTRO=SUS
 		DISTROTEXT="SuSE Linux"
 		;;
@@ -363,6 +364,7 @@ if [ -x /usr/bin/lsb_release ]; then
 		DISTROTEXT="Not recognized"
 		;;
  esac
+ shopt -u nocasematch # Disattivo l'ignore case
 
 elif [ -f /etc/issue ]; then
 
@@ -610,7 +612,20 @@ if [ $SINO = "Y" ]; then
 	# ORA FACCIO LE INSTALLAZIONI PREVISTE PER TIPO DI DISTRIBUZIONE
 	case $DISTRO in
 	DEB)
-		apt-get update && apt-get upgrade \
+		apt-get update && apt-get dist-upgrade | tee "$TMP2"
+        cat "$TMP2" | grep  -i -q -w -e "kernel" -e "linux" -e "[^-]base" -e "libc"
+        if [ $? -eq 0 ]; then
+            cat << !EOM
+Last upgrade process seems to have involved kernel or some system service
+or library. Should be wise to reboot system now and re-run current script.
+!EOM
+            sino "Quit current script and reboot" "Y"
+            if [ $SINO = "Y" ]; then
+                rm -rf "$TEMPORANEI"
+                reboot
+            fi
+        fi
+		apt-get update \
 			&& apt install aptitude apt-file htop mc mlocate vim openssh-server lsb-release\
 					build-essential linux-headers-$(uname -r) module-assistant dkms
 		sino "Have I to install needed packages for a LAMP system?" "N"
@@ -701,7 +716,19 @@ if [ $SINO = "Y" ]; then
 		$PKGMGR -y install htop mc mlocate vim openssh-server redhat-lsb dialog git
 		;;
 	ARC)
-		pacman -Syu
+		pacman -Syu | tee "$TMP2"
+        cat "$TMP2" | grep  -i -q -w -e "kernel" -e "linux" -e "[^-]base" -e "libc"
+        if [ $? -eq 0 ]; then
+            cat << !EOM
+Last upgrade process seems to have involved kernel or some system service
+or library. Should be wise to reboot system now and re-run current script.
+!EOM
+            sino "Quit current script and reboot" "Y"
+            if [ $SINO = "Y" ]; then
+                rm -rf "$TEMPORANEI"
+                reboot
+            fi
+        fi
 		pacman -S base-devel bash-completion sudo linux-headers \
 					make gcc vim lsb-release mc htop lshw mlocate openssh dhcpcd \
                     binutils gcc fakeroot make --needed --noconfirm
@@ -776,14 +803,50 @@ if [ $SINO = "Y" ]; then
         ln -s vim vi
 		;;
 	SUS)
+		zypper -n update | tee "$TMP2"
+        cat "$TMP2" | grep  -i -q -w -e "kernel" -e "linux" -e "[^-]base" -e "libc"
+        if [ $? -eq 0 ]; then
+            cat << !EOM
+Last upgrade process seems to have involved kernel or some system service
+or library. Should be wise to reboot system now and re-run current script.
+!EOM
+            sino "Quit current script and reboot" "Y"
+            if [ $SINO = "Y" ]; then
+                rm -rf "$TEMPORANEI"
+                reboot
+            fi
+        fi
+		zypper ref \
+			&& zypper -n install htop mc mlocate vim openssh lsb-release\
+                 make cmake gcc gcc-c++ kernel-devel
+		sino "Have I to install needed packages for a LAMP system?" "N"
+		if [ $SINO = "Y" ]; then
+
+            # NO: In Debian purtroppo, in Release c'e' unstable/testing/stable anziche' il 
+            # numero .. quindi devo controllare il fottuto /etc/issue
+            # if [[ "${DISTROREL%%.*}" =~ ^[0-9]+$ ]] && [ "$DISTROREL" -ge 9 ]; then
+			#     MYSQL_PKGS="mariadb-client mariadb-server" 
+            # else
+			# 	MYSQL_PKGS="mysql-client mysql-server"
+            # fi
+
+            zypper -n install apache2 php mariadb phpMyAdmin
+		fi
+
+        # MULTI-ARCH Installation on a 64 bit Intel/AMD environment ...
+        if [ "$DISTROARCH" = "x86_64" ] ||  [ "$DISTROARCH" = "amd64" ]; then
+            sino "Do I install Multi-Arch (you can run 32bit apps too on a 64bit system)" "N"
+            if [ $SINO = "Y" ]; then
+                zypper ref
+                sudo zypper -n install cairo-devel-32bit
+            fi
+        fi
+
+
 		;;
 	*)
 		;;
 	esac
-
-
-
-
 
 else
 at_exit 99
