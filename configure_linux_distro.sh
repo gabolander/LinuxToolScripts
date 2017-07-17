@@ -394,8 +394,8 @@ elif [ -f /etc/issue ]; then
 		DISTRO=ARC
 		DISTROTEXT="Arch Linux"
         rel=$(cat /etc/arch-release | head -n 1)
-		lsbdescr="Archlinux"
-		DISTRIBID="Archlinux"
+		lsbdescr="Arch"
+		DISTRIBID="Arch Linux"
 	fi
 
 fi
@@ -695,25 +695,58 @@ or library. Should be wise to reboot system now and re-run current script.
         if [[ "$lsbdescr" =~ Fedora ]]; then
             PKGMGR=dnf
         fi
+		$PKGMGR -y update | tee "$TMP2"
+        cat "$TMP2" | grep  -i -q -w -e "kernel" -e "linux" -e "[^-]base" -e "libc"
+        if [ $? -eq 0 ]; then
+            cat << !EOM
+Last upgrade process seems to have involved kernel or some system service
+or library. Should be wise to reboot system now and re-run current script.
+!EOM
+            sino "Quit current script and reboot" "Y"
+            if [ $SINO = "Y" ]; then
+                rm -rf "$TEMPORANEI"
+                reboot
+            fi
+        fi
+        echo "I install essential services / programs"
+		$PKGMGR -y install htop mc mlocate vim openssh-server redhat-lsb dialog git
+        echo "I start essential services"
+        systemctl enable sshd.service
+        systemctl start sshd.service
+
+        echo "I install Dev tools needed for updating kernel modules ..."
 		LC_ALL=C $PKGMGR -y groupinstall 'Development Tools'
 		# $PKGMGR -y install gcc gcc-c++ make openssl-devel kernel-devel
 		$PKGMGR -y install openssl-devel wget curl bash-completion
 
+		sino "Have I to install needed packages for a LAMP system?" "N"
+		if [ $SINO = "Y" ]; then
+			$PKGMGR -y httpd php php-apache phpmyadmin mariadb
+            echo "I start need services for LAMP"
+            systemctl enable httpd.service
+            systemctl start httpd.service
+            systemctl enable mariadb.service
+            systemctl start mariadb.service
+		fi
+
+
 		# FIXME: This is good only for Enterprise Linux versions (CentOS, RHEL) ...
-		lastdir=$(pwd)
-		cd /tmp
-		# CentOS 7 64
-		## RHEL/CentOS 7 64-Bit ##
-		wget http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-9.noarch.rpm
-		rpm -ivh epel-release-7-9.noarch.rpm
-		## RHEL/CentOS 6 32-Bit ##
-		# wget http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
-		# rpm -ivh epel-release-6-8.noarch.rpm
-		## RHEL/CentOS 6 64-Bit ##
-		# wget http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
-		# rpm -ivh epel-release-6-8.noarch.rpm
-		$PKGMGR -y update
-		$PKGMGR -y install htop mc mlocate vim openssh-server redhat-lsb dialog git
+		sino "Have I to install EPEL repository?" "N"
+		if [ $SINO = "Y" ]; then
+            lastdir=$(pwd)
+            cd /tmp
+            # CentOS 7 64
+            ## RHEL/CentOS 7 64-Bit ##
+            wget http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-9.noarch.rpm
+            rpm -ivh epel-release-7-9.noarch.rpm
+            ## RHEL/CentOS 6 32-Bit ##
+            # wget http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
+            # rpm -ivh epel-release-6-8.noarch.rpm
+            ## RHEL/CentOS 6 64-Bit ##
+            # wget http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+            # rpm -ivh epel-release-6-8.noarch.rpm
+            $PKGMGR -y update
+        fi
 		;;
 	ARC)
 		pacman -Syu | tee "$TMP2"
