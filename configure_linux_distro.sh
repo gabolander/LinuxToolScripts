@@ -708,20 +708,25 @@ or library. Should be wise to reboot system now and re-run current script.
                 reboot
             fi
         fi
+        echo
         echo "I install essential services / programs"
-		$PKGMGR -y install htop mc mlocate vim openssh-server redhat-lsb dialog git
+		$PKGMGR -y install mc mlocate vim openssh-server redhat-lsb dialog git
+        echo
         echo "I start essential services"
         systemctl enable sshd.service
         systemctl start sshd.service
 
+        echo
         echo "I install Dev tools needed for updating kernel modules ..."
-		LC_ALL=C $PKGMGR -y groupinstall 'Development Tools'
+		LC_ALL=C $PKGMGR -y groupinstall 'Development tools'
 		# $PKGMGR -y install gcc gcc-c++ make openssl-devel kernel-devel
 		$PKGMGR -y install openssl-devel wget curl bash-completion
 
+        echo
 		sino "Have I to install needed packages for a LAMP system?" "N"
+        LAMP="$SINO"
 		if [ $SINO = "Y" ]; then
-			$PKGMGR -y httpd php php-apache phpmyadmin mariadb
+			$PKGMGR -y install httpd php php-mysql php-cli mariadb
             echo "I start need services for LAMP"
             systemctl enable httpd.service
             systemctl start httpd.service
@@ -730,23 +735,46 @@ or library. Should be wise to reboot system now and re-run current script.
 		fi
 
 
-		# FIXME: This is good only for Enterprise Linux versions (CentOS, RHEL) ...
+		# FIXME: This is good only for Enterprise Linux versions (CentOS, RHEL, Scientific) ...
+        echo
 		sino "Have I to install EPEL repository?" "N"
 		if [ $SINO = "Y" ]; then
-            lastdir=$(pwd)
-            cd /tmp
-            # CentOS 7 64
-            ## RHEL/CentOS 7 64-Bit ##
-            wget http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-9.noarch.rpm
-            rpm -ivh epel-release-7-9.noarch.rpm
-            ## RHEL/CentOS 6 32-Bit ##
-            # wget http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
-            # rpm -ivh epel-release-6-8.noarch.rpm
-            ## RHEL/CentOS 6 64-Bit ##
-            # wget http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
-            # rpm -ivh epel-release-6-8.noarch.rpm
+            $PKGMGR -y install epel-release
+            if [ $? -ne 0 ]; then
+                lastdir=$(pwd)
+                cd /tmp
+                # CentOS 7 64
+                ## RHEL/CentOS 7 64-Bit ##
+                wget http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-9.noarch.rpm
+                rpm -ivh epel-release-7-9.noarch.rpm
+                ## RHEL/CentOS 6 32-Bit ##
+                # wget http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
+                # rpm -ivh epel-release-6-8.noarch.rpm
+                ## RHEL/CentOS 6 64-Bit ##
+                # wget http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+                # rpm -ivh epel-release-6-8.noarch.rpm
+            fi
             $PKGMGR -y update
+            $PKGMGR -y install htop 
+            [ "$LAMP" = "Y" ] && $PKGMGR -y install phpMyAdmin
         fi
+
+        # Scientific Linux makes use of paranoic setting in /etc/hosts.{allow,deny}, so I propose
+        # to disable restrictions
+        shopt -s nocasematch
+        if [[ $DISTRIBID =~ SCIENTIFIC ]]; then
+            echo
+            echo "Scientific Linux makes use of paranoic setting in /etc/hosts.{allow,deny}, "
+            echo "many accesses to system, even from the local network."
+            sino "Do you want I disable such restrictions?" "N"
+            if [ $SINO = "Y" ]; then
+                sed -i -e "s/^\([^#]\)/## \1/" /etc/hosts.allow 
+                sed -i -e "s/^\([^#]\)/## \1/" /etc/hosts.deny
+                systemctl disable firewalld
+                systemctl stop firewalld
+            fi
+        fi
+        shopt -u nocasematch
 		;;
 	ARC)
 		pacman -Syu | tee "$TMP2"
