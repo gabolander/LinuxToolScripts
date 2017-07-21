@@ -380,7 +380,7 @@ elif [ -f /etc/issue ]; then
         if [[ "$rel" =~ Red\ Hat ]]; then
          lsbdescr=$rel
          DISTRIBID=$(echo $des1 | tr -d "[:space:]")
-        elif  [[ "$rel" =~ CentOS ]] || [[ "$rel" =~ Fedora ]]; then
+        elif  [[ "$rel" =~ CentOS ]] || [[ "$rel" =~ Fedora ]] || [[ "$rel" =~ Scientific ]]; then
          lsbdescr=$rel
          DISTRIBID=$(echo $des1 |  cut -f1 -d" ")
         fi
@@ -726,7 +726,7 @@ or library. Should be wise to reboot system now and re-run current script.
 		sino "Have I to install needed packages for a LAMP system?" "N"
         LAMP="$SINO"
 		if [ $SINO = "Y" ]; then
-			$PKGMGR -y install httpd php php-mysql php-cli mariadb
+			$PKGMGR -y install httpd php php-mysql php-cli mariadb mariadb-server
             echo "I start need services for LAMP"
             systemctl enable httpd.service
             systemctl start httpd.service
