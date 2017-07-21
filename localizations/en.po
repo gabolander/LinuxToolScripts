@@ -1,0 +1,17 @@
+msgid "Greeting"
+msgstr "Hello, I can generate a random number between 2 numbers that you provide"
+
+msgid "Low Number Prompt"
+msgstr "What is your low number"
+
+msgid "High Number Prompt"
+msgstr "What is your high number"
+
+msgid "Input Error"
+msgstr "1st number should be lower than the second - leaving early."
+
+msgid "Result Title"
+msgstr "Your Random Number Is: "
+
+msgid "Activity Log"
+msgstr "from/to generated (by/at): "

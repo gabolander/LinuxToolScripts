@@ -1,0 +1,17 @@
+msgid "Greeting"
+msgstr "Ciao, posso generare un numero casuale fra il numero 2 che assicurate"
+
+msgid "Low Number Prompt"
+msgstr "Che cosa è il vostro numero basso"
+
+msgid "High Number Prompt"
+msgstr "Che cosa è il vostro alto numero"
+
+msgid "Input Error"
+msgstr "il primo numero dovrebbe essere più basso del secondo - andando presto."
+
+msgid "Result Title"
+msgstr "Il vostro numero casuale :"
+
+msgid "Activity Log"
+msgstr "da/al generato a (da/a):"
