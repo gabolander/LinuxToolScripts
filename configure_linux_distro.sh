@@ -643,7 +643,7 @@ or library. Should be wise to reboot system now and re-run current script.
             [ $? -eq 0 ] && MYSQL_PKGS="mariadb-client mariadb-server" \
                          || MYSQL_PKGS="mysql-client mysql-server"
 
-			apt-get install apache2 php $MYSQL_PKGS phpmyadmin
+			apt-get install apache2 php $MYSQL_PKGS phpmyadmin libapache2-mod-php
 		fi
 
         # MULTI-ARCH Installation on a 64 bit Intel/AMD environment ...
