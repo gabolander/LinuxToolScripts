@@ -669,6 +669,13 @@ or library. Should be wise to reboot system now and re-run current script.
             else
                 sino "Do I install deb-multimedia" "N"
                 if [ $SINO = "Y" ]; then
+		    MACH=$(uname -m)
+                    case $MACH in
+                        *64*) ARCH=64
+                            ;;
+                        *) ARCH=32
+                            ;;
+                    esac
                     # I try to determine revision (jessie,stretch,stable,testing,etc.) from installed sources.list ...
                     Rev=$(grep -Pw  "^[^#]*deb .* +main" /etc/apt/sources.list | grep -v "[/-]updates" \
                             | head -n1 | awk '{print $3}')
@@ -682,7 +689,7 @@ or library. Should be wise to reboot system now and re-run current script.
                         echo "deb http://www.deb-multimedia.org $Rev main non-free" >> /etc/apt/sources.list
                         apt update
                         apt -y upgrade
-                        apt -y install ffmpeg w64codecs
+                        apt -y install ffmpeg w${ARCH}codecs
                     fi
 
                 fi
