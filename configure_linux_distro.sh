@@ -669,13 +669,7 @@ or library. Should be wise to reboot system now and re-run current script.
             else
                 sino "Do I install deb-multimedia" "N"
                 if [ $SINO = "Y" ]; then
-		    MACH=$(uname -m)
-                    case $MACH in
-                        *64*) ARCH=64
-                            ;;
-                        *) ARCH=32
-                            ;;
-                    esac
+		    ( [ "$DISTROARCH" = "x86_64" ] ||  [ "$DISTROARCH" = "amd64" ] ) && ARCH=64 || ARCH=32
                     # I try to determine revision (jessie,stretch,stable,testing,etc.) from installed sources.list ...
                     Rev=$(grep -Pw  "^[^#]*deb .* +main" /etc/apt/sources.list | grep -v "[/-]updates" \
                             | head -n1 | awk '{print $3}')
