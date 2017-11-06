@@ -711,7 +711,7 @@ or library. Should be wise to reboot system now and re-run current script.
         fi
         echo
         echo "I install essential services / programs"
-		$PKGMGR -y install mc mlocate vim openssh-server redhat-lsb dialog git
+		$PKGMGR -y install mc mlocate vim openssh-server redhat-lsb dialog git links bind-utils
         echo
         echo "I start essential services"
         systemctl enable sshd.service
