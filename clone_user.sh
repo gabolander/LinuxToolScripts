@@ -40,7 +40,7 @@ if (grep -q "^${DEST}:" /etc/passwd); then
 	exit 1
 fi
 
-SRC_GROUPS=$(id -Gn ${SRC} | sed "s/${SRC} //g" | sed "s/ ${SRC}//g" | sed "s/ /,/g")
+SRC_GROUPS=$(id -Gn ${SRC} | sed "s/\<${SRC}\> //g" | sed "s/ \<${SRC}\>//g" |sed "s/ /,/g")
 SRC_SHELL=$(awk -F : -v name=${SRC} '(name == $1) { print $7 }' /etc/passwd)
 
 useradd --groups ${SRC_GROUPS} --shell ${SRC_SHELL} --create-home ${DEST}
