@@ -9,16 +9,16 @@ VERSION="1.01.2"
 WRITTEN_STARTED="25-03-2012"
 LAST_UPD="10-07-2017"
 
-COL_YELLOW="\033[1;33m";    COLESC_YELLOW=`echo -en "$COL_YELLOW"`
-COL_BROWN="\033[0;33m";     COLESC_BROWN=`echo -en  "$COL_BROWN"`
-COL_RED="\033[0;31m";       COLESC_RED=`echo -en    "$COL_RED"`
-COL_LTRED="\033[1;31m";     COLESC_LTRED=`echo -en  "$COL_LTRED"`
-COL_BLUE="\033[0;34m";      COLESC_BLUE=`echo -en   "$COL_BLUE"`
-COL_LTBLUE="\033[1;34m";    COLESC_LTBLUE=`echo -en "$COL_LTBLUE"`
-COL_GREEN="\033[0;32m";     COLESC_GREEN=`echo -en  "$COL_GREEN"`
-COL_LTGREEN="\033[1;32m";   COLESC_LTGREEN=`echo -e "$COL_LTGREEN"`
-COL_WHITE="\033[0;37m";     COLESC_WHITE=`echo -en  "$COL_WHITE"`
-COL_LTWHITE="\033[1;37m";   COLESC_LTWHITE=`echo -en "$COL_LTWHITE"`
+COL_YELLOW="\e[1;33m";    COLESC_YELLOW=`echo -en "$COL_YELLOW"`
+COL_BROWN="\e[0;33m";     COLESC_BROWN=`echo -en  "$COL_BROWN"`
+COL_RED="\e[0;31m";       COLESC_RED=`echo -en    "$COL_RED"`
+COL_LTRED="\e[1;31m";     COLESC_LTRED=`echo -en  "$COL_LTRED"`
+COL_BLUE="\e[0;34m";      COLESC_BLUE=`echo -en   "$COL_BLUE"`
+COL_LTBLUE="\e[1;34m";    COLESC_LTBLUE=`echo -en "$COL_LTBLUE"`
+COL_GREEN="\e[0;32m";     COLESC_GREEN=`echo -en  "$COL_GREEN"`
+COL_LTGREEN="\e[1;32m";   COLESC_LTGREEN=`echo -e "$COL_LTGREEN"`
+COL_WHITE="\e[0;37m";     COLESC_WHITE=`echo -en  "$COL_WHITE"`
+COL_LTWHITE="\e[1;37m";   COLESC_LTWHITE=`echo -en "$COL_LTWHITE"`
 COL_RESET=`tput sgr0`;        COLESC_RESET=`echo -en  "$COL_RESET"`
 COL_UL=`tput smul`
 COL_BLINK=`tput blink`
@@ -428,7 +428,9 @@ if [ $SINO = "Y" ]; then
 	ALIASNAME[8]="ll"
 	ALIASNAME[9]="ipa"
 	ALIASNAME[10]="ipaddr"
-	ALIASNAME[11]=""
+	ALIASNAME[11]="ipa6"
+	ALIASNAME[12]="ipaddr6"
+	ALIASNAME[13]=""
 
 	ALIASVALUE[0]='cd ..'
 	ALIASVALUE[1]='cd ..'
@@ -439,9 +441,14 @@ if [ $SINO = "Y" ]; then
 	ALIASVALUE[6]='ls -CFA'
 	ALIASVALUE[7]='ls -lAF --group-directories-first'
 	ALIASVALUE[8]='ls -alF'
-	ALIASVALUE[9]="ip -o addr show | grep inet\  | grep 'eth\|enp' | cut -d\  -f 7"
-	ALIASVALUE[10]="ip -o addr show | grep inet\  | grep 'eth\|enp' | cut -d\  -f 7"
-	ALIASVALUE[11]=""
+#	ALIASVALUE[9]="ip -o addr show | grep inet\  | grep 'eth\|enp' | cut -d\  -f 7"
+#	ALIASVALUE[10]="ip -o addr show | grep inet\  | grep 'eth\|enp' | cut -d\  -f 7"
+	ALIASVALUE[9]="ip -o addr show | grep -w inet  | grep -e eth -e enp -e wlan | awk '\\''{print \$2\" \"\$4}'\\''"
+	ALIASVALUE[10]="ip -o addr show | grep -w inet  | grep -e eth -e enp -e wlan | awk '\\''{print \$2\" \"\$4}'\\''"
+	ALIASVALUE[11]="ip -o addr show | grep -w inet6  | grep -e eth -e enp -e wlan | awk '\\''{print \$2\" \"\$4}'\\''"
+	ALIASVALUE[12]="ip -o addr show | grep -w inet6  | grep -e eth -e enp -e wlan | awk '\\''{print \$2\" \"\$4}'\\''"
+
+	ALIASVALUE[13]=""
 
 
 	ESISTESKEL="N"
@@ -517,7 +524,7 @@ if [ $SINO = "Y" ]; then
 			res=$(trim "$aaa")
 
  			echo -e "CAUTION: alias \"$an\" is currently assigned this way:"
- 			echo -e "   $res "
+ 			echo -e "   alias ${an}='$res' "
  			echo -e "Confirming, it should be replaced by this:"
  			echo -e "   alias ${an}='${av}'"
  			echo ""
@@ -537,18 +544,18 @@ if [ $SINO = "Y" ]; then
 ###
 # PS1='[\[\e[1;31m\]\u@\h \w\[\e[m\]]\$ ' # PS1 root stile RedHat
 ### PS1='\[\e[1;31m\]${debian_chroot:+($debian_chroot)}\u@\h:\w\e[m\]\$ '  # PS1 root stile Debian
-# PS1='\[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;31m\]\u@\h\[\033[00m\]:\[\033[00;31m\]\w\[\033[00m\]\$ ' # PS1 root stile Debian
-# PS1='\[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ ' # PS1 user stile Debian
+# PS1='\[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\e[01;31m\]\u@\h\[\e[00m\]:\[\e[00;31m\]\w\[\e[00m\]\$ ' # PS1 root stile Debian
+# PS1='\[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\e[01;32m\]\u@\h\[\e[00m\]:\[\e[01;34m\]\w\[\e[00m\]\$ ' # PS1 user stile Debian
 
 
 
 	# PS1 - ROOT stile Debian
-	aps[0]='\[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;31m\]\u@\h\[\033[00m\]:\[\033[00;31m\]\w\[\033[00m\]\$ '
-	aps_disp[0]="\033[01;31mroot@hostname\033[00m:\033[00;31m/usr/local/bin\033[00m# "
+	aps[0]='\[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\e[01;31m\]\u@\h\[\e[00m\]:\[\e[00;31m\]\w\[\e[00m\]\$ '
+	aps_disp[0]="\e[01;31mroot@hostname\e[00m:\e[00;31m/usr/local/bin\e[00m# "
 
 	# PS1 - USER stile Debian
-	aps[1]='\[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[00;32m\]\u@\h\[\033[00m\]:\[\033[00;36m\]\w\[\033[00m\]\$ '
-	aps_disp[1]="\033[00;32muser@hostname\033[00m:\033[00;36m/home/user/bin\033[00m$ "
+	aps[1]='\[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\e[00;32m\]\u@\h\[\e[00m\]:\[\e[00;36m\]\w\[\e[00m\]\$ '
+	aps_disp[1]="\e[00;32muser@hostname\e[00m:\e[00;36m/home/user/bin\e[00m$ "
 
 	# PS1 - ROOT stile RedHat
 	aps[2]='[\[\e[1;31m\]\u@\h \[\e[0;31m\]\w\[\e[m\]]\$ ' # PS1 root stile RedHat
