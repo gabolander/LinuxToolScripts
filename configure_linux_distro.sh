@@ -443,10 +443,10 @@ if [ $SINO = "Y" ]; then
 	ALIASVALUE[8]='ls -alF'
 #	ALIASVALUE[9]="ip -o addr show | grep inet\  | grep 'eth\|enp' | cut -d\  -f 7"
 #	ALIASVALUE[10]="ip -o addr show | grep inet\  | grep 'eth\|enp' | cut -d\  -f 7"
-	ALIASVALUE[9]="ip -o addr show | grep -w inet  | grep -e eth -e enp -e wlan | awk '\\''{print \$2\" \"\$4}'\\''"
-	ALIASVALUE[10]="ip -o addr show | grep -w inet  | grep -e eth -e enp -e wlan | awk '\\''{print \$2\" \"\$4}'\\''"
-	ALIASVALUE[11]="ip -o addr show | grep -w inet6  | grep -e eth -e enp -e wlan | awk '\\''{print \$2\" \"\$4}'\\''"
-	ALIASVALUE[12]="ip -o addr show | grep -w inet6  | grep -e eth -e enp -e wlan | awk '\\''{print \$2\" \"\$4}'\\''"
+	ALIASVALUE[9]="ip -o addr show | grep -w inet  | grep -e eth -e enp -e wlan -e wlp | awk '\\''{print \$2\" \"\$4}'\\''"
+	ALIASVALUE[10]="ip -o addr show | grep -w inet  | grep -e eth -e enp -e wlan -e wlp | awk '\\''{print \$2\" \"\$4}'\\''"
+	ALIASVALUE[11]="ip -o addr show | grep -w inet6  | grep -e eth -e enp -e wlan -e wlp | awk '\\''{print \$2\" \"\$4}'\\''"
+	ALIASVALUE[12]="ip -o addr show | grep -w inet6  | grep -e eth -e enp -e wlan -e wlp | awk '\\''{print \$2\" \"\$4}'\\''"
 
 	ALIASVALUE[13]=""
 
